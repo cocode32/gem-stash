@@ -1,0 +1,75 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <radialGradient id="bg" cx="50%" cy="38%" r="75%">
+      <stop offset="0%" stop-color="#2a2440"/>
+      <stop offset="100%" stop-color="#15121f"/>
+    </radialGradient>
+
+    <!-- Gem facet gradients: top crown facets catch light, lower pavilion facets fall into shadow -->
+    <linearGradient id="facetLight" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#f6a8ff"/>
+      <stop offset="100%" stop-color="#c84fe0"/>
+    </linearGradient>
+    <linearGradient id="facetMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d65cf0"/>
+      <stop offset="100%" stop-color="#9b2fc4"/>
+    </linearGradient>
+    <linearGradient id="facetDeep" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a23bcf"/>
+      <stop offset="100%" stop-color="#5e1b8f"/>
+    </linearGradient>
+    <linearGradient id="facetDeepest" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7a26b0"/>
+      <stop offset="100%" stop-color="#3f0f6b"/>
+    </linearGradient>
+
+    <!-- Soft glow under the gem -->
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#d65cf0" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#d65cf0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Rounded-square app background -->
+  <rect x="0" y="0" width="1024" height="1024" rx="224" ry="224" fill="url(#bg)"/>
+
+  <!-- Glow halo behind gem -->
+  <ellipse cx="512" cy="560" rx="360" ry="360" fill="url(#glow)"/>
+
+  <!-- Gem group, centered -->
+  <g stroke="#2b0d44" stroke-width="6" stroke-linejoin="round">
+    <!-- Table (top flat facet) -->
+    <polygon points="512,232 392,330 512,392 632,330" fill="url(#facetLight)"/>
+
+    <!-- Upper crown facets, left and right of the table -->
+    <polygon points="272,360 392,330 512,392 360,470" fill="url(#facetMid)"/>
+    <polygon points="752,360 632,330 512,392 664,470" fill="url(#facetMid)"/>
+
+    <!-- Crown shoulder facets -->
+    <polygon points="272,360 360,470 240,520" fill="url(#facetDeep)"/>
+    <polygon points="752,360 664,470 784,520" fill="url(#facetDeep)"/>
+
+    <!-- Girdle band into pavilion: large left and right pavilion facets -->
+    <polygon points="240,520 360,470 512,392 512,792" fill="url(#facetDeep)"/>
+    <polygon points="784,520 664,470 512,392 512,792" fill="url(#facetMid)"/>
+
+    <!-- Lower pavilion facets converging to the culet -->
+    <polygon points="240,520 512,792 512,392" fill="url(#facetDeepest)"/>
+    <polygon points="784,520 512,792 512,392" fill="url(#facetDeep)"/>
+
+    <!-- Bottom point shading: two narrow culet facets -->
+    <polygon points="360,470 240,520 512,792" fill="url(#facetDeepest)"/>
+    <polygon points="664,470 784,520 512,792" fill="url(#facetMid)"/>
+  </g>
+
+  <!-- Specular highlights: a couple of bright slivers to sell the "shiny" -->
+  <polygon points="512,250 432,316 512,348 592,316" fill="#ffffff" opacity="0.35"/>
+  <polygon points="396,338 470,372 388,430" fill="#ffffff" opacity="0.12"/>
+
+  <!-- Tiny sparkle accents -->
+  <g fill="#ffffff">
+    <path d="M700 300 l10 26 26 10 -26 10 -10 26 -10 -26 -26 -10 26 -10 z" opacity="0.85"/>
+    <path d="M318 250 l6 16 16 6 -16 6 -6 16 -6 -16 -16 -6 16 -6 z" opacity="0.6"/>
+  </g>
+</svg>
