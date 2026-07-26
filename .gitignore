@@ -1,0 +1,44 @@
+# Working tree (raw rips, FLAC masters, all derived renders)
+work/
+# reports
+reports/
+# db
+catalog.db
+
+# Audio files anywhere (belt and suspenders alongside work/)
+*.wav
+*.flac
+*.m4a
+*.mp3
+*.aac
+*.alac
+*.aiff
+*.aif
+
+# Cover art dumped alongside audio
+back.jpg
+back.png
+front.jpg
+front.png
+cover.jpg
+cover.png
+
+# Node / pnpm
+node_modules/
+dist/
+*.tsbuildinfo
+.pnpm-store/
+
+# Env / secrets
+.env
+
+# OS cruft
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/
+*.swp
