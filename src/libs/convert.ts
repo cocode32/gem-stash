@@ -304,11 +304,19 @@ export async function fullAudioHash(path: string, algo: ParanoiaHashingAlgorithm
  */
 export async function encodedAudioHash(path: string, algo: ParanoiaHashingAlgorithm): Promise<string> {
 	const { stdout } = await exec("ffmpeg", [
-		"-hide_banner", "-loglevel", "error",
-		"-i", path,
-		"-map", "0:a",
-		"-c:a", "copy",
-		"-f", "streamhash", "-hash", algo,
+		"-hide_banner",
+		"-loglevel",
+		"error",
+		"-i",
+		path,
+		"-map",
+		"0:a",
+		"-c:a",
+		"copy",
+		"-f",
+		"streamhash",
+		"-hash",
+		algo,
 		"-",
 	]);
 	return stdout.trim();

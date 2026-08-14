@@ -1,13 +1,12 @@
+import { mkdir, stat, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import * as p from "@clack/prompts";
-import { resolve, join } from "node:path";
-import { stat, writeFile, mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
-import { openCatalog, findVerifiedSafeToDelete } from "../libs/catalog.ts";
-import { planInbox, executePlan, summarizePlan, type Action, type PlanItem, type Roots } from "../libs/process.ts";
-import { type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
 import { exists } from "../common/file.helpers.ts";
-import { generateReport } from "../libs/report.ts";
 import { humanSize } from "../common/format.helpers.ts";
+import { findVerifiedSafeToDelete, openCatalog } from "../libs/catalog.ts";
+import { type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
+import { type Action, executePlan, type PlanItem, planInbox, type Roots, summarizePlan } from "../libs/process.ts";
+import { generateReport } from "../libs/report.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash process");
