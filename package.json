@@ -11,11 +11,6 @@
 		"render": "node src/cli/render.ts",
 		"restructure": "node src/cli/restructure.ts",
 		"purge": "node src/cli/purge.ts",
-		"sidecars:export": "node tools/sidecar-sync.ts export",
-		"sidecars:restore": "node tools/sidecar-sync.ts restore",
-		"sidecars:index": "node tools/sidecar-sync.ts index",
-		"discogs": "node --env-file=.env tools/discogs-fetch.ts",
-		"discogs-apply": "node --env-file=.env tools/discogs-to-sidecar.ts",
 		"typecheck": "tsc --noEmit",
 		"crosscheck": "node --env-file=.env tools/metadata-crosscheck.ts"
 	},
