@@ -6,7 +6,7 @@ import { humanSize } from "../common/format.helpers.ts";
 
 export type ReportOptions = {
 	/**
-	 * If provided, only include rows whose `path` or `original_path` is under one of these roots.
+	 * If provided, only include rows whose `path` or `originalPath` is under one of these roots.
 	 * If empty/undefined, include every row in the catalog.
 	 */
 	roots?: string[];

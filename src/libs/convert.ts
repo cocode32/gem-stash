@@ -156,13 +156,13 @@ export async function encodeToFlacWithVerify(
 export type StripResult = {
 	destPath: string;
 	/**
-	 * decoded-audio compare hashes, proven equal source vs destination.
-	 * Present only at the matching paranoia level; remux copies have no STREAMINFO MD5.
+	 * ffmpeg decoded-audio MD5, proven equal between source and destination.
+	 * Present only at paranoia == HashMD5.
 	 */
 	audioMd5: string | null;
 	/**
-	 * decoded-audio compare hashes, proven equal source vs destination.
-	 * Present only at the matching paranoia level; remux copies have no STREAMINFO MD5.
+	 * ffmpeg decoded-audio SHA-256, proven equal between source and destination.
+	 * Present only at paranoia >= HashSHA256.
 	 */
 	audioSha256: string | null;
 };
@@ -230,25 +230,17 @@ export async function remuxStripTo(srcPath: string, destPath: string, paranoia: 
 }
 
 /**
+ * Decode any source to PCM with ffmpeg and pipe it into `flac` on stdin,
+ * for the codecs `flac` cannot ingest directly (see FLAC_NATIVE_CODECS).
+ *
+ * `-f wav` is the pipe's transport format, not a claim about the source.
+ * ffmpeg decodes AIFF, ALAC, 24-bit WAV or anything else to raw PCM and re-wraps
+ * the samples as a WAV stream, which is the format `flac` reads on stdin.
+ * Passing the source codec here instead would hand `flac` a container it cannot
+ * decode, so this stays hardcoded.
+ *
  * @param srcPath the original file
  * @param flacArgs args to pass the flac command
- *
- * Comment on presence of `wav` in the decoder section:
- * The flow is:
- *   - ffmpeg reads any source
- *   - decodes it to raw PCM samples
- *   - re-wraps those samples as a WAV stream for the pipe
- * The wav here is the intermediate transport format feeding into flac's stdin, not an assumption about the source.
- * An AIFF source, an ALAC source, a 24-bit WAV source, all get decoded to PCM and emerge as a WAV stream.
- * That's exactly what you want, because flac reads WAV-on-stdin happily.
- *
- * So passing "the actual codec" would be the wrong move here.
- * You don't want to tell ffmpeg "output ALAC" or "output as the source codec",
- * you want it to output decoded PCM in a flac-readable wrapper,
- * and WAV is the standard choice for that.
- * The hardcoded wav is correct and source-agnostic.
- *
- * Leave it.
  */
 async function encodeViaFfmpegPipe(srcPath: string, flacArgs: string[]): Promise<void> {
 	const decoder = spawn(
@@ -298,7 +290,14 @@ export async function fullAudioHash(path: string, algo: ParanoiaHashingAlgorithm
 }
 
 /**
- * Used on lossy files, because mp3 re-encode adds padding and with Xing or LAME headers
+ * Hash the encoded audio bitstream (`-c:a copy`), not the decoded samples.
+ *
+ * Used for lossy files, where fullAudioHash is not a stable comparison: an mp3
+ * decodes with encoder-delay padding whose length is described by the Xing or
+ * LAME header, so a remux that does not carry that header across yields
+ * different PCM from a byte-identical bitstream. Hashing the copied bitstream
+ * compares what the remux actually preserved.
+ *
  * @param path - file path
  * @param algo - the hashing algorithm
  */

@@ -9,7 +9,7 @@ import { type EffectiveTags, splitNumTotal } from "./tagwrite.ts";
 
 /**
  * Album-wide fields, uniform across every track by construction.
- * Putting them here is what makes a non-uniform album_artist structurally impossible
+ * Putting them here is what makes a non-uniform albumArtist structurally impossible
  * once the master exists, and makes a multi-disc release one document.
  */
 export type AlbumCommon = {
@@ -104,8 +104,8 @@ export function albumSidecarPathFor(albumDir: string): string {
  * artist "Rottun Recordings", album "Vaski", and every album by that artist
  * collapses into a single group with a single master.
  *
- * Split-album robust: the key is derived at read time, so a re-group needs no
- * catalog rebuild, and `albumDir` was always dirname(row.path) regardless.
+ * The key is derived at read time rather than stored, so regrouping after an
+ * album is split across categories needs no catalog rebuild.
  *
  * @param rows Processed catalog rows (see findProcessed)
  */
@@ -174,8 +174,8 @@ async function readTrackTags(row: FileRow): Promise<TrackTags> {
  * (or raw file tags) of an album's rows.
  * Shared fields take the most common non-empty value found;
  * per-track fields come straight from each file.
- * The result is a hand-editable draft, not a final answer:
- * validation + the album_artist prompt, resolve anything ambiguous before tags are written.
+ * The result is a hand-editable draft, not a final answer. Validation and the
+ * albumArtist prompt resolve anything ambiguous before tags are written.
  *
  * @param group The album to consolidate
  */
@@ -222,7 +222,7 @@ export async function consolidateAlbum(group: AlbumGroup): Promise<AlbumSidecar>
 	const distinctDiscs = new Set(tracks.map((t) => t.discNumber).filter(Boolean));
 
 	const album: AlbumCommon = {
-		// album_artist is the one field we will not guess at.
+		// albumArtist is the one field we will not guess at.
 		// Only fill it when the sources unanimously agree.
 		// Any disagreement leaves it empty so the tag run prompts the owner for the canonical value
 		// (typically the compiler/DJ, which is often not even one of the per-track artists).
@@ -343,7 +343,6 @@ function modal(values: string[]): string {
 	for (const [v, n] of counts) {
 		if (n > bestN) {
 			best = v;
-			// TODO check if we need bestN
 			bestN = n;
 		}
 	}

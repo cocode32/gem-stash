@@ -51,7 +51,6 @@ export type PurgeEvent =
 	| { kind: "removed-dir"; path: string }
 	| { kind: "kept-dir"; path: string; reason: string };
 
-//
 /**
  * Deletes the verified inbox sources, clears their catalog pointers,
  * then for any inbox folder it fully emptied of media,

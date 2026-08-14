@@ -111,12 +111,15 @@ function vorbisArgs(tag: EffectiveTags): string[] {
 }
 
 /**
- * ### writeFlacTags
- * Operations apply left to right: clear existing tags + pictures
- * (idempotent on re-runs; the archive masters are stripped already),
- * then set + import.
+ * Write tags and one front cover onto a FLAC by editing its metadata blocks.
+ * The audio frames and the STREAMINFO MD5 are untouched, so a tagged master
+ * still verifies against its original encode.
  *
- * ## Metaflac docs
+ * metaflac allows one major operation per invocation but any number of shorthand
+ * ones, so this runs in two passes: the major operations (removing the existing
+ * VORBIS_COMMENT and PICTURE blocks) first, then the shorthand set + import
+ * combined into a single call. Clearing first makes a re-run idempotent, which
+ * matters because `pnpm tag` is safe to run repeatedly over the same album.
  *
  * ### Doc location online
  * https://xiph.org/flac/documentation_tools_metaflac.html

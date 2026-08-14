@@ -8,7 +8,6 @@ import { AUDIO_EXTENSIONS } from "../common/constants.ts";
 
 export type EnsureResult = { row: FileRow; cached: boolean };
 
-//
 /**
  * Single source of truth for "inspect this file once and persist it".
  * If the catalog already has a row for this path we return it untouched;

@@ -116,12 +116,9 @@ export type RenderEvent =
 	  };
 
 /**
- * Plan an Apple render:
- * - group every processed file into albums,
- * - for each, that has a master
- *   - decide whether it is ready to render, and
- *   - how its tracks
- * split across lossless (ALAC), lossy (AAC), and skipped (suspect).
+ * Plan an Apple render. Groups every processed file into albums and, for each
+ * album that has a master, decides whether it is ready to render and how its
+ * tracks split across lossless (ALAC), lossy (AAC) and skipped (suspect).
  *
  * No files are touched.
  *
