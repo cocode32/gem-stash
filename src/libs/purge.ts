@@ -1,10 +1,10 @@
 import { copyFile, mkdir, readdir, rmdir, stat, unlink } from "node:fs/promises";
 import { dirname, extname, join, sep } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { clearPurged, findVerifiedSafeToDelete } from "./catalog.ts";
 import { AUDIO_EXTENSIONS } from "../common/constants.ts";
 import { exists } from "../common/file.helpers.ts";
 import { parseErrorMsg } from "../common/format.helpers.ts";
+import { clearPurged, findVerifiedSafeToDelete } from "./catalog.ts";
 
 export type PurgeItem = {
 	/**
@@ -51,7 +51,6 @@ export type PurgeEvent =
 	| { kind: "removed-dir"; path: string }
 	| { kind: "kept-dir"; path: string; reason: string };
 
-//
 /**
  * Deletes the verified inbox sources, clears their catalog pointers,
  * then for any inbox folder it fully emptied of media,
@@ -75,6 +74,7 @@ export async function* executePurge(db: DatabaseSync, inboxRoot: string, plan: P
 		try {
 			await unlink(item.originalPath);
 			deleted.push(item.originalPath);
+			// biome-ignore lint/style/noNonNullAssertion: confirmed to exist above
 			destFoldersByFolder.get(folder)!.add(dirname(item.destPath));
 			yield { kind: "deleted", path: item.originalPath };
 		} catch (e) {
@@ -100,7 +100,8 @@ export async function* executePurge(db: DatabaseSync, inboxRoot: string, plan: P
  * @param inboxRoot The inbox root path
  */
 async function* sweepFolder(folder: string, destFolders: string[], inboxRoot: string): AsyncGenerator<PurgeEvent> {
-	let entries;
+	// biome-ignore lint/suspicious/noExplicitAny: explicit any because the type if from the file system
+	let entries: any;
 	try {
 		entries = await readdir(folder, { withFileTypes: true });
 	} catch {
@@ -148,7 +149,7 @@ async function* sweepFolder(folder: string, destFolders: string[], inboxRoot: st
 async function* removeEmptyUp(folder: string, inboxRoot: string): AsyncGenerator<PurgeEvent> {
 	let cur = folder;
 	while (cur !== inboxRoot && cur.startsWith(inboxRoot + sep)) {
-		let remaining;
+		let remaining: string[];
 		try {
 			remaining = await readdir(cur);
 		} catch {

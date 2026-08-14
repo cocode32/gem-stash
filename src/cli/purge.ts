@@ -1,8 +1,8 @@
-import * as p from "@clack/prompts";
 import { join, resolve } from "node:path";
-import { openCatalog } from "../libs/catalog.ts";
-import { executePurge, planPurge, type PurgePlan } from "../libs/purge.ts";
+import * as p from "@clack/prompts";
 import { humanSize } from "../common/format.helpers.ts";
+import { openCatalog } from "../libs/catalog.ts";
+import { executePurge, type PurgePlan, planPurge } from "../libs/purge.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash purge");

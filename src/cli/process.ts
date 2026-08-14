@@ -1,13 +1,12 @@
+import { mkdir, stat, writeFile } from "node:fs/promises";
+import { dirname, join, resolve } from "node:path";
 import * as p from "@clack/prompts";
-import { resolve, join } from "node:path";
-import { stat, writeFile, mkdir } from "node:fs/promises";
-import { dirname } from "node:path";
-import { openCatalog, findVerifiedSafeToDelete } from "../libs/catalog.ts";
-import { planInbox, executePlan, summarizePlan, type Action, type PlanItem, type Roots } from "../libs/process.ts";
-import { type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
 import { exists } from "../common/file.helpers.ts";
-import { generateReport } from "../libs/report.ts";
 import { humanSize } from "../common/format.helpers.ts";
+import { findVerifiedSafeToDelete, openCatalog } from "../libs/catalog.ts";
+import { type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
+import { type Action, executePlan, type PlanItem, planInbox, type Roots, summarizePlan } from "../libs/process.ts";
+import { generateReport } from "../libs/report.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash process");
@@ -150,7 +149,7 @@ async function main(): Promise<void> {
 	}
 	const worklistPath = resolve("./reports/safe-to-delete.txt");
 	await mkdir(dirname(worklistPath), { recursive: true });
-	await writeFile(worklistPath, safeOnDisk.length > 0 ? safeOnDisk.join("\n") + "\n" : "", "utf8");
+	await writeFile(worklistPath, safeOnDisk.length > 0 ? `${safeOnDisk.join("\n")}\n` : "", "utf8");
 	p.log.info(
 		safeOnDisk.length > 0
 			? `Wrote ${safeOnDisk.length} verified-source path(s) to ${worklistPath}. Run pnpm purge to delete.`
@@ -160,6 +159,7 @@ async function main(): Promise<void> {
 	const reportNow = await p.confirm({
 		message: "Regenerate Markdown report now?",
 	});
+	// noinspection DuplicatedCode
 	if (p.isCancel(reportNow) || !reportNow) {
 		db.close();
 		p.outro("Done. Skipped report.");

@@ -3,7 +3,8 @@
 import { copyFile, mkdir, rename } from "node:fs/promises";
 import { dirname, extname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { findProcessed } from "./catalog.ts";
+import { exists, safeUnlink } from "../common/file.helpers.ts";
+import { parseErrorMsg } from "../common/format.helpers.ts";
 import {
 	type AlbumCommon,
 	type AlbumGroup,
@@ -13,12 +14,11 @@ import {
 	groupProcessedAlbums,
 	readAlbumSidecar,
 } from "./album-sidecar.ts";
+import { findProcessed } from "./catalog.ts";
+import { fullAudioHash, type OutputParanoia, type ParanoiaHashingAlgorithm, paranoiaOptions } from "./convert.ts";
+import { albumRelPath } from "./layout.ts";
 import { validateAlbum } from "./tag.ts";
 import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
-import { audioHash, type OutputParanoia, type ParanoiaHashingAlgorithm, paranoiaOptions } from "./convert.ts";
-import { albumRelPath } from "./layout.ts";
-import { exists, safeUnlink } from "../common/file.helpers.ts";
-import { parseErrorMsg } from "../common/format.helpers.ts";
 
 /**
  * A planned album for the final-archive restructure. `ready` gates whether it is
@@ -246,7 +246,7 @@ async function placeOne(
 		// 4. Optionally prove the audio is bit-identical to the archive source.
 		let verifiedHash: string | null = null;
 		if (verify) {
-			const [srcHash, dstHash] = await Promise.all([audioHash(src, verify), audioHash(tmp, verify)]);
+			const [srcHash, dstHash] = await Promise.all([fullAudioHash(src, verify), fullAudioHash(tmp, verify)]);
 			if (!srcHash || srcHash !== dstHash) {
 				throw new Error(`Final copy changed audio (${verify}) for ${src}: source ${srcHash} vs copy ${dstHash}`);
 			}

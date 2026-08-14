@@ -1,5 +1,5 @@
-import type { StreamInfo } from "./inspect.ts";
 import { LOSSLESS_CODECS, LOSSY_CODECS } from "../common/codecs.ts";
+import type { StreamInfo } from "./inspect.ts";
 
 export type Verdict = "lossless-cd" | "lossless-hires" | "lossy" | "suspect";
 

@@ -1,5 +1,5 @@
-import * as p from "@clack/prompts";
 import { resolve } from "node:path";
+import * as p from "@clack/prompts";
 import { openCatalog } from "../libs/catalog.ts";
 import { executeScaffold, planScaffold, type ScaffoldPlanItem } from "../libs/scaffold.ts";
 

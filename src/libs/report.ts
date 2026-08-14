@@ -1,12 +1,12 @@
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { allRows, type FileRow } from "./catalog.ts";
 import { humanSize } from "../common/format.helpers.ts";
+import { allRows, type FileRow } from "./catalog.ts";
 
 export type ReportOptions = {
 	/**
-	 * If provided, only include rows whose `path` or `original_path` is under one of these roots.
+	 * If provided, only include rows whose `path` or `originalPath` is under one of these roots.
 	 * If empty/undefined, include every row in the catalog.
 	 */
 	roots?: string[];
@@ -89,7 +89,7 @@ export async function generateReport(db: DatabaseSync, outPath: string, opts: Re
 		albumCount += writeAlbumGroupedSection(out, lossy, { showVerified: false }).albums;
 	}
 
-	const whereSummary = out.findIndex((x) => x === "## Summary");
+	const whereSummary = out.indexOf("## Summary");
 	out.splice(whereSummary + 3, 0, `- Albums (folders): ${albumCount}`);
 
 	if (suspect.length > 0) {
@@ -112,7 +112,8 @@ export async function generateReport(db: DatabaseSync, outPath: string, opts: Re
 		out.push("Run `pnpm purge` to delete after a final confirmation.");
 		out.push("");
 		for (const r of safeToDelete) {
-			const sz = await sizeOf(r.originalPath!);
+			if (!r.originalPath) continue;
+			const sz = await sizeOf(r.originalPath);
 			out.push(`- \`${r.originalPath}\`${sz ? ` (${sz})` : " (missing)"}`);
 		}
 		out.push("");

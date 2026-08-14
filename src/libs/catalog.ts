@@ -193,11 +193,11 @@ export type ConversionHashes = {
 	 */
 	streamInfoMd5: string | null;
 	/**
-	 * ffmpeg decoded-audio compare hashes, proven equal source vs flac.
+	 * ffmpeg decoded-audio MD5, proven equal source vs destination (paranoia == HashMD5).
 	 */
 	audioMd5: string | null;
 	/**
-	 * ffmpeg decoded-audio compare hashes, proven equal source vs flac.
+	 * ffmpeg decoded-audio SHA-256, proven equal source vs destination (paranoia >= HashSHA256).
 	 */
 	audioSha256: string | null;
 };
@@ -270,7 +270,8 @@ export type ExtractionRecord = {
 	 */
 	droppedKeys: string[];
 	/**
-	 * set when the lossy file itself was de-tagged (audio-preserving strip)
+	 * set when the destination was written stripped of tags and art
+	 * (an audio-preserving strip, true for every category)
 	 */
 	detagged: boolean;
 };
@@ -278,7 +279,8 @@ export type ExtractionRecord = {
 /**
  * Records that metadata + art were captured for a file.
  * Stores the art file list and dropped-key log as JSON arrays.
- * `detaggedAt` is only set for lossy files whose tags were stripped after extraction.
+ * `detaggedAt` is set for every processed file, since process always writes the
+ * destination stripped of tags and art.
  * @param db The catalog database
  * @param path The path identifier of the row
  * @param rec Extraction information
@@ -328,7 +330,7 @@ export function allRows(db: DatabaseSync): FileRow[] {
 /**
  * Every processed file (landed in an `archive/` bucket),
  * ordered by its archive path so callers can group by album folder.
- * This is the input set for the milestone-3 tag writer:
+ * This is the input set for `pnpm tag`:
  *  - lossless,
  *  - lossy, and
  *  - suspect

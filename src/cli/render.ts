@@ -1,9 +1,9 @@
-import * as p from "@clack/prompts";
-import { join, resolve } from "node:path";
 import { stat } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import * as p from "@clack/prompts";
 import { openCatalog } from "../libs/catalog.ts";
+import { type OutputParanoia, outputParanoiaOptions, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
 import { executeRender, planRender, type RenderPlanAlbum } from "../libs/render.ts";
-import { type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions, type OutputParanoia, outputParanoiaOptions } from "../libs/convert.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash render (ALAC m4a for Apple)");
@@ -163,13 +163,10 @@ async function main(): Promise<void> {
 		[
 			`Renders are in ${renderRoot}`,
 			"",
-			"In Apple Music:",
-			" - Settings ",
-			"  -> Files",
-			"    -> uncheck",
-			'       "Copy files to Music Media folder when adding to library".',
-			"Then add the renders/apple folder.",
-			"Apple then indexes them in place instead of duplicating them.",
+			"Move or copy files from the render path to:",
+			"~/Music/Music/Media/Automatically\\ Add\\ to\\ Music",
+			"(or whatever your Apple Music settings for this folder is).",
+			"Apple Music will then index them and place them into the Library automatically.",
 		].join("\n"),
 		"Load onto iPhone",
 	);

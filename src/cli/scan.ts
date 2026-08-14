@@ -1,9 +1,9 @@
-import * as p from "@clack/prompts";
-import { resolve } from "node:path";
 import { stat } from "node:fs/promises";
+import { resolve } from "node:path";
+import * as p from "@clack/prompts";
 import { openCatalog } from "../libs/catalog.ts";
-import { scan } from "../libs/scan.ts";
 import { generateReport } from "../libs/report.ts";
+import { scan } from "../libs/scan.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash scanner");
@@ -81,7 +81,7 @@ async function main(): Promise<void> {
 	});
 	if (p.isCancel(reportNow) || !reportNow) {
 		db.close();
-		p.outro(`Catalog written (${count} files). Skipped report.`);
+		p.outro(`Catalog written (${count} files). Errors during run: ${errors}. Skipped report.`);
 		return;
 	}
 
@@ -101,7 +101,7 @@ async function main(): Promise<void> {
 	});
 	if (p.isCancel(confirmWrite) || !confirmWrite) {
 		db.close();
-		p.outro("Catalog written. Skipped report.");
+		p.outro(`Catalog written (${count} files). Errors during run: ${errors}. Skipped report.`);
 		return;
 	}
 
@@ -109,7 +109,7 @@ async function main(): Promise<void> {
 		roots: [root],
 	});
 	db.close();
-	p.outro(`Report written: ${albums} album(s), ${tracks} track(s).`);
+	p.outro(`Report written: ${albums} album(s), ${tracks} track(s).` + `Catalog written (${count} files).` + `Errors during run: ${errors}`);
 }
 
 main().catch((e) => {

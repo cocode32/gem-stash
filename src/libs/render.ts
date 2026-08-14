@@ -1,11 +1,12 @@
 // noinspection ExceptionCaughtLocallyJS -- expected behaviour where throws occur
 
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { mkdir, rename } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { type FileRow, findProcessed } from "./catalog.ts";
+import { promisify } from "node:util";
+import { exists, safeUnlink } from "../common/file.helpers.ts";
+import { parseErrorMsg } from "../common/format.helpers.ts";
 import {
 	type AlbumCommon,
 	type AlbumGroup,
@@ -15,18 +16,10 @@ import {
 	groupProcessedAlbums,
 	readAlbumSidecar,
 } from "./album-sidecar.ts";
+import { type FileRow, findProcessed } from "./catalog.ts";
+import { fullAudioHash, type OutputParanoia, type ParanoiaHashingAlgorithm, paranoiaOptions } from "./convert.ts";
 import { validateAlbum } from "./tag.ts";
 import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
-import {
-	audioHash,
-	type Paranoia,
-	ParanoiaFriendlyNameMap,
-	type ParanoiaHashingAlgorithm,
-	paranoiaOptions,
-	type OutputParanoia,
-} from "./convert.ts";
-import { exists, safeUnlink } from "../common/file.helpers.ts";
-import { parseErrorMsg } from "../common/format.helpers.ts";
 
 const exec = promisify(execFile);
 
@@ -116,12 +109,9 @@ export type RenderEvent =
 	  };
 
 /**
- * Plan an Apple render:
- * - group every processed file into albums,
- * - for each, that has a master
- *   - decide whether it is ready to render, and
- *   - how its tracks
- * split across lossless (ALAC), lossy (AAC), and skipped (suspect).
+ * Plan an Apple render. Groups every processed file into albums and, for each
+ * album that has a master, decides whether it is ready to render and how its
+ * tracks split across lossless (ALAC), lossy (AAC) and skipped (suspect).
  *
  * No files are touched.
  *
@@ -302,7 +292,7 @@ async function renderOne(
 		//    A lossy re-encode (aac-encode) changes the samples by design, so there is nothing to prove.
 		let verifiedHash: string | null = null;
 		if (verify && mode !== "aac-encode") {
-			const [srcHash, dstHash] = await Promise.all([audioHash(src, verify), audioHash(tmp, verify)]);
+			const [srcHash, dstHash] = await Promise.all([fullAudioHash(src, verify), fullAudioHash(tmp, verify)]);
 			if (!srcHash || srcHash !== dstHash) {
 				throw new Error(`Render not bit-identical (${verify}) for ${src}: source ${srcHash} vs render ${dstHash}`);
 			}
@@ -356,9 +346,12 @@ function pad2(n: string): string {
  * - trailing dots/spaces
  */
 function sanitizeSegment(s: string): string {
-	return s
-		.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
-		.replace(/\s+/g, " ")
-		.replace(/[. ]+$/g, "")
-		.trim();
+	return (
+		s
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: explicit control characters used as part of sanitizing the input
+			.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
+			.replace(/\s+/g, " ")
+			.replace(/[. ]+$/g, "")
+			.trim()
+	);
 }

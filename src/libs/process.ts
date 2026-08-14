@@ -3,12 +3,12 @@
 import { mkdir, stat } from "node:fs/promises";
 import { basename, dirname, extname, join, relative } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { categoryFor, type Category, type Verdict } from "./classify.ts";
-import { findByOriginalPath, recordExtraction, recordProcessed, type ConversionHashes } from "./catalog.ts";
-import { encodeToFlacWithVerify, type Paranoia, remuxStripTo } from "./convert.ts";
 import { exists } from "../common/file.helpers.ts";
-import { extractArt, normalizeTags, readRawTags, writeSidecar } from "./sidecar.ts";
+import { type ConversionHashes, findByOriginalPath, recordExtraction, recordProcessed } from "./catalog.ts";
+import { type Category, categoryFor, type Verdict } from "./classify.ts";
+import { encodeToFlacWithVerify, type Paranoia, remuxStripTo } from "./convert.ts";
 import { ensureFileScanned, walk } from "./scan.ts";
+import { extractArt, normalizeTags, readRawTags, writeSidecar } from "./sidecar.ts";
 
 export type Action = "encode-to-flac" | "copy-strip" | "skip-already-processed" | "skip-dest-exists";
 
@@ -139,7 +139,13 @@ export async function* executePlan(db: DatabaseSync, items: PlanItem[], paranoia
 				}
 				case "encode-to-flac":
 				case "copy-strip": {
-					const destPath = item.destPath!;
+					if (!item.destPath) {
+						throw new Error("destination path required, but not declared.");
+					}
+					if (!item.destRelative) {
+						throw new Error("destination relative path required, but not declared.");
+					}
+					const destPath = item.destPath;
 					const destDir = dirname(destPath);
 					const destBase = basename(destPath);
 					await mkdir(destDir, { recursive: true });
@@ -174,7 +180,7 @@ export async function* executePlan(db: DatabaseSync, items: PlanItem[], paranoia
 					// and at Paranoia.None we trust the copy without checks
 					// (running with no paranoia assumes everything went fine).
 					// Either way the inbox source is now safe to delete.
-					recordProcessed(db, item.srcPath, destPath, item.destRelative!, item.category, true, hashes);
+					recordProcessed(db, item.srcPath, destPath, item.destRelative, item.category, true, hashes);
 					recordExtraction(db, destPath, {
 						sidecarPath,
 						artFiles: art.map((a) => a.file),

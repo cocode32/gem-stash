@@ -59,6 +59,6 @@
 	},
 	"files": {
 		"ignoreUnknown": true,
-		"includes": ["**", "!dist", "!node_modules", "!discogs", "!work", "!reports"]
+		"includes": ["**", "!dist", "!node_modules", "!discogs", "!work", "!reports", "!sidecars"]
 	}
 }

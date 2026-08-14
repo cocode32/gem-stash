@@ -1,13 +1,13 @@
 // noinspection ExceptionCaughtLocallyJS -- expected behaviour where throws occur
 
 import { execFile, spawn } from "node:child_process";
-import { promisify } from "node:util";
 import { mkdir, rename } from "node:fs/promises";
 import { dirname, extname } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { findByPath } from "./catalog.ts";
+import { promisify } from "node:util";
 import { detectAudioCodec, flacCanReadDirectly } from "../common/audio.helpers.ts";
 import { exists, safeUnlink } from "../common/file.helpers.ts";
+import { findByPath } from "./catalog.ts";
 
 const exec = promisify(execFile);
 
@@ -132,7 +132,7 @@ export async function encodeToFlacWithVerify(
 		// --- Levels 3 & 4: end-to-end decoded-audio hash compare ---
 		if (paranoia >= paranoiaOptions.HashMD5) {
 			const algo: ParanoiaHashingAlgorithm = paranoia >= paranoiaOptions.HashSHA256 ? "sha256" : "md5";
-			const [srcHash, flacHash] = await Promise.all([audioHash(srcPath, algo), audioHash(tmpPath, algo)]);
+			const [srcHash, flacHash] = await Promise.all([fullAudioHash(srcPath, algo), fullAudioHash(tmpPath, algo)]);
 			if (srcHash !== flacHash || !srcHash) {
 				throw new Error(`Audio hash mismatch (${algo}) for ${srcPath}: source ${srcHash} vs flac ${flacHash}`);
 			}
@@ -156,13 +156,13 @@ export async function encodeToFlacWithVerify(
 export type StripResult = {
 	destPath: string;
 	/**
-	 * decoded-audio compare hashes, proven equal source vs destination.
-	 * Present only at the matching paranoia level; remux copies have no STREAMINFO MD5.
+	 * ffmpeg decoded-audio MD5, proven equal between source and destination.
+	 * Present only at paranoia == HashMD5.
 	 */
 	audioMd5: string | null;
 	/**
-	 * decoded-audio compare hashes, proven equal source vs destination.
-	 * Present only at the matching paranoia level; remux copies have no STREAMINFO MD5.
+	 * ffmpeg decoded-audio SHA-256, proven equal between source and destination.
+	 * Present only at paranoia >= HashSHA256.
 	 */
 	audioSha256: string | null;
 };
@@ -213,7 +213,7 @@ export async function remuxStripTo(srcPath: string, destPath: string, paranoia: 
 
 		if (paranoia >= paranoiaOptions.Verify) {
 			const algo: ParanoiaHashingAlgorithm = paranoia >= paranoiaOptions.HashSHA256 ? "sha256" : "md5";
-			const [srcHash, dstHash] = await Promise.all([audioHash(srcPath, algo), audioHash(tmpPath, algo)]);
+			const [srcHash, dstHash] = await Promise.all([encodedAudioHash(srcPath, algo), encodedAudioHash(tmpPath, algo)]);
 			if (!srcHash || srcHash !== dstHash) {
 				throw new Error(`Strip changed audio (${algo}) for ${srcPath}: source ${srcHash} vs dest ${dstHash}`);
 			}
@@ -230,25 +230,17 @@ export async function remuxStripTo(srcPath: string, destPath: string, paranoia: 
 }
 
 /**
+ * Decode any source to PCM with ffmpeg and pipe it into `flac` on stdin,
+ * for the codecs `flac` cannot ingest directly (see FLAC_NATIVE_CODECS).
+ *
+ * `-f wav` is the pipe's transport format, not a claim about the source.
+ * ffmpeg decodes AIFF, ALAC, 24-bit WAV or anything else to raw PCM and re-wraps
+ * the samples as a WAV stream, which is the format `flac` reads on stdin.
+ * Passing the source codec here instead would hand `flac` a container it cannot
+ * decode, so this stays hardcoded.
+ *
  * @param srcPath the original file
  * @param flacArgs args to pass the flac command
- *
- * Comment on presence of `wav` in the decoder section:
- * The flow is:
- *   - ffmpeg reads any source
- *   - decodes it to raw PCM samples
- *   - re-wraps those samples as a WAV stream for the pipe
- * The wav here is the intermediate transport format feeding into flac's stdin, not an assumption about the source.
- * An AIFF source, an ALAC source, a 24-bit WAV source, all get decoded to PCM and emerge as a WAV stream.
- * That's exactly what you want, because flac reads WAV-on-stdin happily.
- *
- * So passing "the actual codec" would be the wrong move here.
- * You don't want to tell ffmpeg "output ALAC" or "output as the source codec",
- * you want it to output decoded PCM in a flac-readable wrapper,
- * and WAV is the standard choice for that.
- * The hardcoded wav is correct and source-agnostic.
- *
- * Leave it.
  */
 async function encodeViaFfmpegPipe(srcPath: string, flacArgs: string[]): Promise<void> {
 	const decoder = spawn(
@@ -263,7 +255,9 @@ async function encodeViaFfmpegPipe(srcPath: string, flacArgs: string[]): Promise
 	decoder.stderr?.on("data", (b: Buffer) => decoderErr.push(b));
 	encoder.stderr?.on("data", (b: Buffer) => encoderErr.push(b));
 
-	decoder.stdout?.pipe(encoder.stdin!);
+	if (encoder.stdin) {
+		decoder.stdout?.pipe(encoder.stdin);
+	}
 
 	// If either side dies abnormally, kill the other so we don't hang.
 	decoder.on("close", (code) => {
@@ -290,9 +284,41 @@ async function flacStoredMd5(path: string): Promise<string> {
 	return stdout.trim();
 }
 
-export async function audioHash(path: string, algo: ParanoiaHashingAlgorithm): Promise<string> {
+export async function fullAudioHash(path: string, algo: ParanoiaHashingAlgorithm): Promise<string> {
 	// md5 uses the dedicated muxer; everything else uses the generic hash muxer.
 	const fmtArgs = algo === "md5" ? ["-f", "md5"] : ["-f", "hash", "-hash", algo];
 	const { stdout } = await exec("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", path, "-map", "0:a", ...fmtArgs, "-"]);
+	return stdout.trim();
+}
+
+/**
+ * Hash the encoded audio bitstream (`-c:a copy`), not the decoded samples.
+ *
+ * Used for lossy files, where fullAudioHash is not a stable comparison: an mp3
+ * decodes with encoder-delay padding whose length is described by the Xing or
+ * LAME header, so a remux that does not carry that header across yields
+ * different PCM from a byte-identical bitstream. Hashing the copied bitstream
+ * compares what the remux actually preserved.
+ *
+ * @param path - file path
+ * @param algo - the hashing algorithm
+ */
+export async function encodedAudioHash(path: string, algo: ParanoiaHashingAlgorithm): Promise<string> {
+	const { stdout } = await exec("ffmpeg", [
+		"-hide_banner",
+		"-loglevel",
+		"error",
+		"-i",
+		path,
+		"-map",
+		"0:a",
+		"-c:a",
+		"copy",
+		"-f",
+		"streamhash",
+		"-hash",
+		algo,
+		"-",
+	]);
 	return stdout.trim();
 }

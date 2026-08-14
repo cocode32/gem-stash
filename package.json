@@ -4,10 +4,6 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"lint": "biome lint .",
-		"lint:fix": "biome lint --write .",
-		"format": "biome format .",
-		"format:fix": "biome format --write .",
 		"scan": "node src/cli/scan.ts",
 		"process": "node src/cli/process.ts",
 		"scaffold": "node src/cli/scaffold.ts",
@@ -15,16 +11,17 @@
 		"render": "node src/cli/render.ts",
 		"restructure": "node src/cli/restructure.ts",
 		"purge": "node src/cli/purge.ts",
-		"discogs": "source .env && node tools/discogs-fetch.ts",
-		"discogs-apply": "node tools/discogs-to-sidecar.ts",
-		"typecheck": "tsc --noEmit"
+		"typecheck": "tsc --noEmit",
+		"crosscheck": "node --env-file=.env tools/metadata-crosscheck.ts",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write ."
 	},
 	"dependencies": {
-		"@clack/prompts": "^1.7.0"
+		"@clack/prompts": "^1.5.1"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.5",
-		"@types/node": "^26.1.1",
-		"typescript": "^7.0.2"
+		"@types/node": "^25.9.3",
+		"typescript": "^6.0.3"
 	}
 }

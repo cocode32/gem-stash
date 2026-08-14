@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
+import { promisify } from "node:util";
 import type { Category } from "./classify.ts";
 
 const exec = promisify(execFile);
@@ -96,7 +96,7 @@ export type SidecarKind = Category;
  * Order the scaffold is written in: Apple-critical tags first, then the extras.
  * Every canonical tag appears in the sidecar;
  * absent ones are empty strings so the file is a ready-to-edit template.
- * The milestone-3 tag writer skips empties.
+ * `pnpm tag` skips empties rather than writing a blank tag.
  */
 const CANONICAL_TAG_ORDER: CanonicalTag[] = [
 	"title",
@@ -174,7 +174,9 @@ export async function readRawTags(path: string): Promise<Record<string, string>>
 /**
  * 2. Normalize
  *
- * Normalize the tags, because different containers store tags of the same "type", with different keys.
+ * Fold the container-specific spellings of a field onto one canonical name, so
+ * an ID3 `album_artist`, a Vorbis `albumartist` and an MP4 `aART` all land in
+ * the same place.
  * @param raw The actual tags from the current media
  */
 export function normalizeTags(raw: Record<string, string>): NormalizedTags {
@@ -304,14 +306,15 @@ export async function writeSidecar(
 		droppedTags: normalized.dropped,
 	};
 	const out = sidecarPathFor(audioPath);
-	await writeFile(out, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
+	await writeFile(out, `${JSON.stringify(sidecar, null, 2)}\n`, "utf8");
 	return out;
 }
 
 /**
  * Read a per-file sidecar back into the Sidecar shape.
- * Used by milestone 3 to consolidate the per-file sidecars into the album
- * master and, after writing, to refresh the per-file sidecar from the master.
+ * Used by `pnpm scaffold` to consolidate the per-file sidecars into the album
+ * master, and by `pnpm tag` to refresh the per-file sidecar from the master
+ * after writing.
  *
  * @param path Path to the `<file>.sidecar.json`
  */

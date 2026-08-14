@@ -1,10 +1,12 @@
-import * as p from "@clack/prompts";
-import { join, resolve } from "node:path";
+// noinspection DuplicatedCode
+
 import { stat } from "node:fs/promises";
-import { openCatalog } from "../libs/catalog.ts";
-import { type AlbumPlan, executeTagging, planTagging, type TagJob, validateAlbum } from "../libs/tag.ts";
+import { join, resolve } from "node:path";
+import * as p from "@clack/prompts";
 import { writeAlbumSidecar } from "../libs/album-sidecar.ts";
+import { openCatalog } from "../libs/catalog.ts";
 import { generateReport } from "../libs/report.ts";
+import { type AlbumPlan, executeTagging, planTagging, type TagJob, validateAlbum } from "../libs/tag.ts";
 
 // Sentinel for "let me type a value the list doesn't offer".
 const CUSTOM = "custom";
