@@ -35,9 +35,7 @@ Four binaries are called as child processes:
 - `ffprobe` for inspection,
 - `ffmpeg` for transcoding and tag rewriting,
 - `flac` for archival encoding, and
-- `metaflac` for editing
-
-FLAC metadata blocks in place.
+- `metaflac` for editing FLAC metadata blocks in place.
 
 They come from two Homebrew formulae:
 
