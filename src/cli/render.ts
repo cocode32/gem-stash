@@ -2,7 +2,7 @@ import { stat } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import * as p from "@clack/prompts";
 import { openCatalog } from "../libs/catalog.ts";
-import { type OutputParanoia, outputParanoiaOptions, type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
+import { type OutputParanoia, outputParanoiaOptions, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
 import { executeRender, planRender, type RenderPlanAlbum } from "../libs/render.ts";
 
 async function main(): Promise<void> {

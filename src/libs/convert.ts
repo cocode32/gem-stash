@@ -255,7 +255,9 @@ async function encodeViaFfmpegPipe(srcPath: string, flacArgs: string[]): Promise
 	decoder.stderr?.on("data", (b: Buffer) => decoderErr.push(b));
 	encoder.stderr?.on("data", (b: Buffer) => encoderErr.push(b));
 
-	decoder.stdout?.pipe(encoder.stdin!);
+	if (encoder.stdin) {
+		decoder.stdout?.pipe(encoder.stdin);
+	}
 
 	// If either side dies abnormally, kill the other so we don't hang.
 	decoder.on("close", (code) => {

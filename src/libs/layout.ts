@@ -35,9 +35,12 @@ export function pad2(n: string): string {
  * chars, and trailing dots/spaces.
  */
 export function sanitizeSegment(s: string): string {
-	return s
-		.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
-		.replace(/\s+/g, " ")
-		.replace(/[. ]+$/g, "")
-		.trim();
+	return (
+		s
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: explicit control characters used as part of sanitizing the input
+			.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
+			.replace(/\s+/g, " ")
+			.replace(/[. ]+$/g, "")
+			.trim()
+	);
 }

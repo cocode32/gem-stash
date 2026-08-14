@@ -89,7 +89,7 @@ export async function generateReport(db: DatabaseSync, outPath: string, opts: Re
 		albumCount += writeAlbumGroupedSection(out, lossy, { showVerified: false }).albums;
 	}
 
-	const whereSummary = out.findIndex((x) => x === "## Summary");
+	const whereSummary = out.indexOf("## Summary");
 	out.splice(whereSummary + 3, 0, `- Albums (folders): ${albumCount}`);
 
 	if (suspect.length > 0) {
@@ -112,7 +112,8 @@ export async function generateReport(db: DatabaseSync, outPath: string, opts: Re
 		out.push("Run `pnpm purge` to delete after a final confirmation.");
 		out.push("");
 		for (const r of safeToDelete) {
-			const sz = await sizeOf(r.originalPath!);
+			if (!r.originalPath) continue;
+			const sz = await sizeOf(r.originalPath);
 			out.push(`- \`${r.originalPath}\`${sz ? ` (${sz})` : " (missing)"}`);
 		}
 		out.push("");

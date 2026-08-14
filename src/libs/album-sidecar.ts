@@ -123,7 +123,7 @@ export function groupProcessedAlbums(rows: FileRow[]): AlbumGroup[] {
 		const { category, albumDir } = pickPrimary(items);
 		groups.push({
 			// The key is "<category>/<...>/<album folder>": the last segment names the
-			// album, and whatever sits between the category and it names the artist.
+			// album, and whatever sits between the category, and it names the artist.
 			artist: key.split("/").slice(1, -1).join("/") || ROOT,
 			album: key.split("/").at(-1) ?? ROOT,
 			rows: items,
@@ -271,7 +271,7 @@ export async function readAlbumSidecar(path: string): Promise<AlbumSidecar> {
 }
 
 export async function writeAlbumSidecar(path: string, sidecar: AlbumSidecar): Promise<void> {
-	await writeFile(path, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
+	await writeFile(path, `${JSON.stringify(sidecar, null, 2)}\n`, "utf8");
 }
 
 /**
@@ -319,7 +319,7 @@ export async function regenerateSingle(row: FileRow, effective: EffectiveTags): 
 	if (await exists(sidecarPath)) {
 		const sidecar = await readSidecar(sidecarPath);
 		sidecar.tags = effective;
-		await writeFile(sidecarPath, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
+		await writeFile(sidecarPath, `${JSON.stringify(sidecar, null, 2)}\n`, "utf8");
 		return sidecarPath;
 	}
 	const normalized: NormalizedTags = { tags: pickNonEmpty(effective), dropped: {} };

@@ -1,3 +1,5 @@
+// noinspection DuplicatedCode
+
 import { stat } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import * as p from "@clack/prompts";

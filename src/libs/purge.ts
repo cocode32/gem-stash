@@ -74,6 +74,7 @@ export async function* executePurge(db: DatabaseSync, inboxRoot: string, plan: P
 		try {
 			await unlink(item.originalPath);
 			deleted.push(item.originalPath);
+			// biome-ignore lint/style/noNonNullAssertion: confirmed to exist above
 			destFoldersByFolder.get(folder)!.add(dirname(item.destPath));
 			yield { kind: "deleted", path: item.originalPath };
 		} catch (e) {
@@ -99,7 +100,8 @@ export async function* executePurge(db: DatabaseSync, inboxRoot: string, plan: P
  * @param inboxRoot The inbox root path
  */
 async function* sweepFolder(folder: string, destFolders: string[], inboxRoot: string): AsyncGenerator<PurgeEvent> {
-	let entries;
+	// biome-ignore lint/suspicious/noExplicitAny: explicit any because the type if from the file system
+	let entries: any;
 	try {
 		entries = await readdir(folder, { withFileTypes: true });
 	} catch {
@@ -147,7 +149,7 @@ async function* sweepFolder(folder: string, destFolders: string[], inboxRoot: st
 async function* removeEmptyUp(folder: string, inboxRoot: string): AsyncGenerator<PurgeEvent> {
 	let cur = folder;
 	while (cur !== inboxRoot && cur.startsWith(inboxRoot + sep)) {
-		let remaining;
+		let remaining: string[];
 		try {
 			remaining = await readdir(cur);
 		} catch {

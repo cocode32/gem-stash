@@ -12,7 +12,9 @@
 		"restructure": "node src/cli/restructure.ts",
 		"purge": "node src/cli/purge.ts",
 		"typecheck": "tsc --noEmit",
-		"crosscheck": "node --env-file=.env tools/metadata-crosscheck.ts"
+		"crosscheck": "node --env-file=.env tools/metadata-crosscheck.ts",
+		"lint": "biome check .",
+		"lint:fix": "biome check --write ."
 	},
 	"dependencies": {
 		"@clack/prompts": "^1.5.1"

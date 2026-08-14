@@ -17,14 +17,7 @@ import {
 	readAlbumSidecar,
 } from "./album-sidecar.ts";
 import { type FileRow, findProcessed } from "./catalog.ts";
-import {
-	fullAudioHash,
-	type OutputParanoia,
-	type Paranoia,
-	ParanoiaFriendlyNameMap,
-	type ParanoiaHashingAlgorithm,
-	paranoiaOptions,
-} from "./convert.ts";
+import { fullAudioHash, type OutputParanoia, type ParanoiaHashingAlgorithm, paranoiaOptions } from "./convert.ts";
 import { validateAlbum } from "./tag.ts";
 import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
 
@@ -353,9 +346,12 @@ function pad2(n: string): string {
  * - trailing dots/spaces
  */
 function sanitizeSegment(s: string): string {
-	return s
-		.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
-		.replace(/\s+/g, " ")
-		.replace(/[. ]+$/g, "")
-		.trim();
+	return (
+		s
+			// biome-ignore lint/suspicious/noControlCharactersInRegex: explicit control characters used as part of sanitizing the input
+			.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
+			.replace(/\s+/g, " ")
+			.replace(/[. ]+$/g, "")
+			.trim()
+	);
 }

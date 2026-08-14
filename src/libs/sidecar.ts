@@ -306,7 +306,7 @@ export async function writeSidecar(
 		droppedTags: normalized.dropped,
 	};
 	const out = sidecarPathFor(audioPath);
-	await writeFile(out, JSON.stringify(sidecar, null, 2) + "\n", "utf8");
+	await writeFile(out, `${JSON.stringify(sidecar, null, 2)}\n`, "utf8");
 	return out;
 }
 

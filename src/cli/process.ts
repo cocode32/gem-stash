@@ -149,7 +149,7 @@ async function main(): Promise<void> {
 	}
 	const worklistPath = resolve("./reports/safe-to-delete.txt");
 	await mkdir(dirname(worklistPath), { recursive: true });
-	await writeFile(worklistPath, safeOnDisk.length > 0 ? safeOnDisk.join("\n") + "\n" : "", "utf8");
+	await writeFile(worklistPath, safeOnDisk.length > 0 ? `${safeOnDisk.join("\n")}\n` : "", "utf8");
 	p.log.info(
 		safeOnDisk.length > 0
 			? `Wrote ${safeOnDisk.length} verified-source path(s) to ${worklistPath}. Run pnpm purge to delete.`
@@ -159,6 +159,7 @@ async function main(): Promise<void> {
 	const reportNow = await p.confirm({
 		message: "Regenerate Markdown report now?",
 	});
+	// noinspection DuplicatedCode
 	if (p.isCancel(reportNow) || !reportNow) {
 		db.close();
 		p.outro("Done. Skipped report.");
