@@ -1,9 +1,9 @@
-import * as p from "@clack/prompts";
-import { join, resolve } from "node:path";
 import { stat } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import * as p from "@clack/prompts";
 import { openCatalog } from "../libs/catalog.ts";
-import { executeRestructure, planRestructure, type RestructurePlanAlbum } from "../libs/restructure.ts";
 import { type OutputParanoia, outputParanoiaOptions, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
+import { executeRestructure, planRestructure, type RestructurePlanAlbum } from "../libs/restructure.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash restructure (final artist-first archive)");

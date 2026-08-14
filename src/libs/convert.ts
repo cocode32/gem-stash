@@ -1,13 +1,13 @@
 // noinspection ExceptionCaughtLocallyJS -- expected behaviour where throws occur
 
 import { execFile, spawn } from "node:child_process";
-import { promisify } from "node:util";
 import { mkdir, rename } from "node:fs/promises";
 import { dirname, extname } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { findByPath } from "./catalog.ts";
+import { promisify } from "node:util";
 import { detectAudioCodec, flacCanReadDirectly } from "../common/audio.helpers.ts";
 import { exists, safeUnlink } from "../common/file.helpers.ts";
+import { findByPath } from "./catalog.ts";
 
 const exec = promisify(execFile);
 

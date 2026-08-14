@@ -1,12 +1,12 @@
 // noinspection ExceptionCaughtLocallyJS -- expected behaviour where throws occur
 
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { rename } from "node:fs/promises";
 import { extname } from "node:path";
+import { promisify } from "node:util";
+import { safeUnlink } from "../common/file.helpers.ts";
 import type { CanonicalTag } from "./sidecar.ts";
 import { normalizeTags, readRawTags } from "./sidecar.ts";
-import { safeUnlink } from "../common/file.helpers.ts";
 
 const exec = promisify(execFile);
 

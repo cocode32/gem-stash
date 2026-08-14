@@ -1,9 +1,9 @@
-import * as p from "@clack/prompts";
-import { resolve } from "node:path";
 import { stat } from "node:fs/promises";
+import { resolve } from "node:path";
+import * as p from "@clack/prompts";
 import { openCatalog } from "../libs/catalog.ts";
-import { scan } from "../libs/scan.ts";
 import { generateReport } from "../libs/report.ts";
+import { scan } from "../libs/scan.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash scanner");

@@ -1,10 +1,10 @@
 import { readdir } from "node:fs/promises";
-import { join, extname, relative, basename, sep } from "node:path";
+import { basename, extname, join, relative, sep } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { inspect } from "./inspect.ts";
-import { classify, type Verdict } from "./classify.ts";
-import { findByPath, upsertFile, type FileRow } from "./catalog.ts";
 import { AUDIO_EXTENSIONS } from "../common/constants.ts";
+import { type FileRow, findByPath, upsertFile } from "./catalog.ts";
+import { classify, type Verdict } from "./classify.ts";
+import { inspect } from "./inspect.ts";
 
 export type EnsureResult = { row: FileRow; cached: boolean };
 

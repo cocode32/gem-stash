@@ -1,7 +1,7 @@
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { readFile, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
+import { promisify } from "node:util";
 import type { Category } from "./classify.ts";
 
 const exec = promisify(execFile);

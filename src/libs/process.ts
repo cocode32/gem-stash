@@ -3,12 +3,12 @@
 import { mkdir, stat } from "node:fs/promises";
 import { basename, dirname, extname, join, relative } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { categoryFor, type Category, type Verdict } from "./classify.ts";
-import { findByOriginalPath, recordExtraction, recordProcessed, type ConversionHashes } from "./catalog.ts";
-import { encodeToFlacWithVerify, type Paranoia, remuxStripTo } from "./convert.ts";
 import { exists } from "../common/file.helpers.ts";
-import { extractArt, normalizeTags, readRawTags, writeSidecar } from "./sidecar.ts";
+import { type ConversionHashes, findByOriginalPath, recordExtraction, recordProcessed } from "./catalog.ts";
+import { type Category, categoryFor, type Verdict } from "./classify.ts";
+import { encodeToFlacWithVerify, type Paranoia, remuxStripTo } from "./convert.ts";
 import { ensureFileScanned, walk } from "./scan.ts";
+import { extractArt, normalizeTags, readRawTags, writeSidecar } from "./sidecar.ts";
 
 export type Action = "encode-to-flac" | "copy-strip" | "skip-already-processed" | "skip-dest-exists";
 

@@ -1,11 +1,12 @@
 // noinspection ExceptionCaughtLocallyJS -- expected behaviour where throws occur
 
 import { execFile } from "node:child_process";
-import { promisify } from "node:util";
 import { mkdir, rename } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { type FileRow, findProcessed } from "./catalog.ts";
+import { promisify } from "node:util";
+import { exists, safeUnlink } from "../common/file.helpers.ts";
+import { parseErrorMsg } from "../common/format.helpers.ts";
 import {
 	type AlbumCommon,
 	type AlbumGroup,
@@ -15,18 +16,17 @@ import {
 	groupProcessedAlbums,
 	readAlbumSidecar,
 } from "./album-sidecar.ts";
-import { validateAlbum } from "./tag.ts";
-import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
+import { type FileRow, findProcessed } from "./catalog.ts";
 import {
 	fullAudioHash,
+	type OutputParanoia,
 	type Paranoia,
 	ParanoiaFriendlyNameMap,
 	type ParanoiaHashingAlgorithm,
 	paranoiaOptions,
-	type OutputParanoia,
 } from "./convert.ts";
-import { exists, safeUnlink } from "../common/file.helpers.ts";
-import { parseErrorMsg } from "../common/format.helpers.ts";
+import { validateAlbum } from "./tag.ts";
+import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
 
 const exec = promisify(execFile);
 
@@ -354,7 +354,7 @@ function pad2(n: string): string {
  */
 function sanitizeSegment(s: string): string {
 	return s
-		.replace(/[\/\\:*?"<>|\x00-\x1f]/g, "-")
+		.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
 		.replace(/\s+/g, " ")
 		.replace(/[. ]+$/g, "")
 		.trim();

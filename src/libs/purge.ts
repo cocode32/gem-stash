@@ -1,10 +1,10 @@
 import { copyFile, mkdir, readdir, rmdir, stat, unlink } from "node:fs/promises";
 import { dirname, extname, join, sep } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { clearPurged, findVerifiedSafeToDelete } from "./catalog.ts";
 import { AUDIO_EXTENSIONS } from "../common/constants.ts";
 import { exists } from "../common/file.helpers.ts";
 import { parseErrorMsg } from "../common/format.helpers.ts";
+import { clearPurged, findVerifiedSafeToDelete } from "./catalog.ts";
 
 export type PurgeItem = {
 	/**

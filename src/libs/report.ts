@@ -1,8 +1,8 @@
 import { mkdir, stat, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { allRows, type FileRow } from "./catalog.ts";
 import { humanSize } from "../common/format.helpers.ts";
+import { allRows, type FileRow } from "./catalog.ts";
 
 export type ReportOptions = {
 	/**

@@ -36,7 +36,7 @@ export function pad2(n: string): string {
  */
 export function sanitizeSegment(s: string): string {
 	return s
-		.replace(/[\/\\:*?"<>|\x00-\x1f]/g, "-")
+		.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
 		.replace(/\s+/g, " ")
 		.replace(/[. ]+$/g, "")
 		.trim();

@@ -1,9 +1,9 @@
-import * as p from "@clack/prompts";
-import { join, resolve } from "node:path";
 import { stat } from "node:fs/promises";
+import { join, resolve } from "node:path";
+import * as p from "@clack/prompts";
 import { openCatalog } from "../libs/catalog.ts";
+import { type OutputParanoia, outputParanoiaOptions, type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions } from "../libs/convert.ts";
 import { executeRender, planRender, type RenderPlanAlbum } from "../libs/render.ts";
-import { type Paranoia, ParanoiaFriendlyNameMap, paranoiaOptions, type OutputParanoia, outputParanoiaOptions } from "../libs/convert.ts";
 
 async function main(): Promise<void> {
 	p.intro("gem-stash render (ALAC m4a for Apple)");

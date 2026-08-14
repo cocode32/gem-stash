@@ -3,7 +3,8 @@
 import { copyFile, mkdir, rename } from "node:fs/promises";
 import { dirname, extname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { findProcessed } from "./catalog.ts";
+import { exists, safeUnlink } from "../common/file.helpers.ts";
+import { parseErrorMsg } from "../common/format.helpers.ts";
 import {
 	type AlbumCommon,
 	type AlbumGroup,
@@ -13,12 +14,11 @@ import {
 	groupProcessedAlbums,
 	readAlbumSidecar,
 } from "./album-sidecar.ts";
-import { validateAlbum } from "./tag.ts";
-import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
+import { findProcessed } from "./catalog.ts";
 import { fullAudioHash, type OutputParanoia, type ParanoiaHashingAlgorithm, paranoiaOptions } from "./convert.ts";
 import { albumRelPath } from "./layout.ts";
-import { exists, safeUnlink } from "../common/file.helpers.ts";
-import { parseErrorMsg } from "../common/format.helpers.ts";
+import { validateAlbum } from "./tag.ts";
+import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
 
 /**
  * A planned album for the final-archive restructure. `ready` gates whether it is

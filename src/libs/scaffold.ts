@@ -1,10 +1,10 @@
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { findProcessed } from "./catalog.ts";
-import { consolidateAlbum, groupProcessedAlbums, writeAlbumSidecar, type AlbumGroup } from "./album-sidecar.ts";
 import { exists } from "../common/file.helpers.ts";
 import { parseErrorMsg } from "../common/format.helpers.ts";
+import { type AlbumGroup, consolidateAlbum, groupProcessedAlbums, writeAlbumSidecar } from "./album-sidecar.ts";
+import { findProcessed } from "./catalog.ts";
 
 export type ScaffoldPlanItem = {
 	group: AlbumGroup;
