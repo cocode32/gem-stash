@@ -1,3 +1,4 @@
+import type { Dirent } from "node:fs";
 import { copyFile, mkdir, readdir, rmdir, stat, unlink } from "node:fs/promises";
 import { dirname, extname, join, sep } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
@@ -100,8 +101,7 @@ export async function* executePurge(db: DatabaseSync, inboxRoot: string, plan: P
  * @param inboxRoot The inbox root path
  */
 async function* sweepFolder(folder: string, destFolders: string[], inboxRoot: string): AsyncGenerator<PurgeEvent> {
-	// biome-ignore lint/suspicious/noExplicitAny: explicit any because the type if from the file system
-	let entries: any;
+	let entries: Dirent[];
 	try {
 		entries = await readdir(folder, { withFileTypes: true });
 	} catch {
