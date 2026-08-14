@@ -15,7 +15,7 @@ import {
 } from "./album-sidecar.ts";
 import { validateAlbum } from "./tag.ts";
 import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
-import { audioHash, type OutputParanoia, type ParanoiaHashingAlgorithm, paranoiaOptions } from "./convert.ts";
+import { fullAudioHash, type OutputParanoia, type ParanoiaHashingAlgorithm, paranoiaOptions } from "./convert.ts";
 import { albumRelPath } from "./layout.ts";
 import { exists, safeUnlink } from "../common/file.helpers.ts";
 import { parseErrorMsg } from "../common/format.helpers.ts";
@@ -246,7 +246,7 @@ async function placeOne(
 		// 4. Optionally prove the audio is bit-identical to the archive source.
 		let verifiedHash: string | null = null;
 		if (verify) {
-			const [srcHash, dstHash] = await Promise.all([audioHash(src, verify), audioHash(tmp, verify)]);
+			const [srcHash, dstHash] = await Promise.all([fullAudioHash(src, verify), fullAudioHash(tmp, verify)]);
 			if (!srcHash || srcHash !== dstHash) {
 				throw new Error(`Final copy changed audio (${verify}) for ${src}: source ${srcHash} vs copy ${dstHash}`);
 			}

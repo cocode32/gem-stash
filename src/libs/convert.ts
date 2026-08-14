@@ -132,7 +132,7 @@ export async function encodeToFlacWithVerify(
 		// --- Levels 3 & 4: end-to-end decoded-audio hash compare ---
 		if (paranoia >= paranoiaOptions.HashMD5) {
 			const algo: ParanoiaHashingAlgorithm = paranoia >= paranoiaOptions.HashSHA256 ? "sha256" : "md5";
-			const [srcHash, flacHash] = await Promise.all([audioHash(srcPath, algo), audioHash(tmpPath, algo)]);
+			const [srcHash, flacHash] = await Promise.all([fullAudioHash(srcPath, algo), fullAudioHash(tmpPath, algo)]);
 			if (srcHash !== flacHash || !srcHash) {
 				throw new Error(`Audio hash mismatch (${algo}) for ${srcPath}: source ${srcHash} vs flac ${flacHash}`);
 			}
@@ -213,7 +213,7 @@ export async function remuxStripTo(srcPath: string, destPath: string, paranoia: 
 
 		if (paranoia >= paranoiaOptions.Verify) {
 			const algo: ParanoiaHashingAlgorithm = paranoia >= paranoiaOptions.HashSHA256 ? "sha256" : "md5";
-			const [srcHash, dstHash] = await Promise.all([audioHash(srcPath, algo), audioHash(tmpPath, algo)]);
+			const [srcHash, dstHash] = await Promise.all([encodedAudioHash(srcPath, algo), encodedAudioHash(tmpPath, algo)]);
 			if (!srcHash || srcHash !== dstHash) {
 				throw new Error(`Strip changed audio (${algo}) for ${srcPath}: source ${srcHash} vs dest ${dstHash}`);
 			}
@@ -290,9 +290,26 @@ async function flacStoredMd5(path: string): Promise<string> {
 	return stdout.trim();
 }
 
-export async function audioHash(path: string, algo: ParanoiaHashingAlgorithm): Promise<string> {
+export async function fullAudioHash(path: string, algo: ParanoiaHashingAlgorithm): Promise<string> {
 	// md5 uses the dedicated muxer; everything else uses the generic hash muxer.
 	const fmtArgs = algo === "md5" ? ["-f", "md5"] : ["-f", "hash", "-hash", algo];
 	const { stdout } = await exec("ffmpeg", ["-hide_banner", "-loglevel", "error", "-i", path, "-map", "0:a", ...fmtArgs, "-"]);
+	return stdout.trim();
+}
+
+/**
+ * Used on lossy files, because mp3 re-encode adds padding and with Xing or LAME headers
+ * @param path - file path
+ * @param algo - the hashing algorithm
+ */
+export async function encodedAudioHash(path: string, algo: ParanoiaHashingAlgorithm): Promise<string> {
+	const { stdout } = await exec("ffmpeg", [
+		"-hide_banner", "-loglevel", "error",
+		"-i", path,
+		"-map", "0:a",
+		"-c:a", "copy",
+		"-f", "streamhash", "-hash", algo,
+		"-",
+	]);
 	return stdout.trim();
 }

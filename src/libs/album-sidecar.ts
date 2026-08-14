@@ -1,11 +1,11 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
-import type { Category } from "./classify.ts";
+import { exists } from "../common/file.helpers.ts";
 import type { FileRow } from "./catalog.ts";
+import type { Category } from "./classify.ts";
 import type { CanonicalTag, NormalizedTags } from "./sidecar.ts";
 import { normalizeTags, readRawTags, readSidecar, sidecarPathFor, writeSidecar } from "./sidecar.ts";
 import { type EffectiveTags, splitNumTotal } from "./tagwrite.ts";
-import { exists } from "../common/file.helpers.ts";
 
 /**
  * Album-wide fields, uniform across every track by construction.
@@ -64,7 +64,10 @@ export type AlbumSidecar = {
  */
 export type AlbumGroup = {
 	/**
-	 * albumArtistFolder, or '(root)' for files that sat at the inbox root.
+	 * The path segments between the category and the album folder, e.g.
+	 * "Rottun Recordings/Vaski". Display only; the canonical album artist is the
+	 * master's albumArtist field. '(root)' when the album folder sits directly
+	 * under the category.
 	 */
 	artist: string;
 	album: string;
@@ -91,18 +94,25 @@ export function albumSidecarPathFor(albumDir: string): string {
 }
 
 /**
- * Group processed rows into albums by their (albumArtistFolder, albumFolder),
- * which come from the inbox layout and are identical across every track of an
- * album regardless of which category bucket it landed in.
+ * Group processed rows into albums by the folder each file actually sits in,
+ * i.e. dirname of its archive-relative path.
  *
- * Split-album robust.
+ * One folder is one album. This has to be the folder itself rather than the
+ * catalog's (albumArtistFolder, albumFolder) columns, because those are
+ * positional: they take the first two segments of the inbox path, so a label
+ * nested one level deeper (Rottun Recordings/Vaski/Hurricane EP) resolves to
+ * artist "Rottun Recordings", album "Vaski", and every album by that artist
+ * collapses into a single group with a single master.
+ *
+ * Split-album robust: the key is derived at read time, so a re-group needs no
+ * catalog rebuild, and `albumDir` was always dirname(row.path) regardless.
  *
  * @param rows Processed catalog rows (see findProcessed)
  */
 export function groupProcessedAlbums(rows: FileRow[]): AlbumGroup[] {
 	const byKey = new Map<string, FileRow[]>();
 	for (const r of rows) {
-		const key = `${r.albumArtistFolder ?? ROOT}\t${r.albumFolder ?? ROOT}`;
+		const key = dirname(r.relativePath);
 		const arr = byKey.get(key) ?? [];
 		arr.push(r);
 		byKey.set(key, arr);
@@ -110,11 +120,12 @@ export function groupProcessedAlbums(rows: FileRow[]): AlbumGroup[] {
 
 	const groups: AlbumGroup[] = [];
 	for (const [key, items] of byKey) {
-		const [artist, album] = key.split("\t");
 		const { category, albumDir } = pickPrimary(items);
 		groups.push({
-			artist,
-			album,
+			// The key is "<category>/<...>/<album folder>": the last segment names the
+			// album, and whatever sits between the category and it names the artist.
+			artist: key.split("/").slice(1, -1).join("/") || ROOT,
+			album: key.split("/").at(-1) ?? ROOT,
 			rows: items,
 			primaryCategory: category,
 			albumDir,
@@ -226,6 +237,33 @@ export async function consolidateAlbum(group: AlbumGroup): Promise<AlbumSidecar>
 	};
 
 	return { schemaVersion: 1, album, tracks };
+}
+
+/**
+ * Whether an album reads as a genuine various-artists compilation.
+ *
+ * The signal is not "has more than one track artist". An artist album routinely
+ * credits guests ("Seether", "Seether & Van Coke Kartel"), and flagging those
+ * would file a normal album under Compilations on the phone, which is the exact
+ * mis-grouping the compilation tag exists to prevent. What actually marks a
+ * compilation is that the album artist does not perform most of the record:
+ * the DJ comp, the soundtrack, the label sampler.
+ *
+ * @param album The shared album block
+ * @param tracks The album's tracks
+ */
+export function looksLikeCompilation(album: AlbumCommon, tracks: AlbumTrack[]): boolean {
+	const albumArtist = album.albumArtist.trim().toLowerCase();
+	const artists = [...new Set(tracks.map((t) => t.artist.trim()).filter(Boolean))];
+
+	if (artists.length < 2) return false;
+	// Nobody claims the album, or it claims everybody.
+	if (!albumArtist || /^various\b/.test(albumArtist)) return true;
+
+	// A guest credit still contains the album artist ("Kiesza feat. Joey Bada$$"),
+	// so substring containment is what distinguishes a guest from a different act.
+	const performed = artists.filter((a) => a.toLowerCase().includes(albumArtist)).length;
+	return performed * 2 < artists.length;
 }
 
 export async function readAlbumSidecar(path: string): Promise<AlbumSidecar> {

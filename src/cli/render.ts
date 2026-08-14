@@ -163,13 +163,10 @@ async function main(): Promise<void> {
 		[
 			`Renders are in ${renderRoot}`,
 			"",
-			"In Apple Music:",
-			" - Settings ",
-			"  -> Files",
-			"    -> uncheck",
-			'       "Copy files to Music Media folder when adding to library".',
-			"Then add the renders/apple folder.",
-			"Apple then indexes them in place instead of duplicating them.",
+			"Move or copy files from the render path to:",
+			"~/Music/Music/Media/Automatically\\ Add\\ to\\ Music",
+			"(or whatever your Apple Music settings for this folder is).",
+			"Apple Music will then index them and place them into the Library automatically.",
 		].join("\n"),
 		"Load onto iPhone",
 	);

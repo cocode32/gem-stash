@@ -18,7 +18,7 @@ import {
 import { validateAlbum } from "./tag.ts";
 import { readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
 import {
-	audioHash,
+	fullAudioHash,
 	type Paranoia,
 	ParanoiaFriendlyNameMap,
 	type ParanoiaHashingAlgorithm,
@@ -302,7 +302,7 @@ async function renderOne(
 		//    A lossy re-encode (aac-encode) changes the samples by design, so there is nothing to prove.
 		let verifiedHash: string | null = null;
 		if (verify && mode !== "aac-encode") {
-			const [srcHash, dstHash] = await Promise.all([audioHash(src, verify), audioHash(tmp, verify)]);
+			const [srcHash, dstHash] = await Promise.all([fullAudioHash(src, verify), fullAudioHash(tmp, verify)]);
 			if (!srcHash || srcHash !== dstHash) {
 				throw new Error(`Render not bit-identical (${verify}) for ${src}: source ${srcHash} vs render ${dstHash}`);
 			}
@@ -357,7 +357,7 @@ function pad2(n: string): string {
  */
 function sanitizeSegment(s: string): string {
 	return s
-		.replace(/[/\\:*?"<>|\x00-\x1f]/g, "-")
+		.replace(/[\/\\:*?"<>|\x00-\x1f]/g, "-")
 		.replace(/\s+/g, " ")
 		.replace(/[. ]+$/g, "")
 		.trim();

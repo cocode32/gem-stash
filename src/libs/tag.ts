@@ -2,18 +2,19 @@
 
 import { dirname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
-import { type FileRow, type FinalTags, findProcessed, recordTagged } from "./catalog.ts";
+import { exists } from "../common/file.helpers.ts";
+import { parseErrorMsg } from "../common/format.helpers.ts";
 import {
 	type AlbumGroup,
 	type AlbumSidecar,
 	effectiveTagsForTrack,
 	groupProcessedAlbums,
+	looksLikeCompilation,
 	readAlbumSidecar,
 	regenerateSingle,
 } from "./album-sidecar.ts";
+import { type FileRow, type FinalTags, findProcessed, recordTagged } from "./catalog.ts";
 import { combineNumTotal, type EffectiveTags, readBackTags, verifyWritten, writeTags } from "./tagwrite.ts";
-import { exists } from "../common/file.helpers.ts";
-import { parseErrorMsg } from "../common/format.helpers.ts";
 
 export type AlbumValidation = {
 	/**
@@ -32,8 +33,9 @@ export type AlbumValidation = {
 	 */
 	needsAlbumArtist: boolean;
 	/**
-	 * More than one distinct track artist but the compilation flag is not set;
-	 * the writer sets it to 1 so Apple does not split the album.
+	 * The album reads as a various-artists compilation (see looksLikeCompilation)
+	 * but the flag is not set; the writer sets it to 1 so Apple files it as one
+	 * record rather than splitting it per track artist.
 	 */
 	needsCompilation: boolean;
 };
@@ -128,8 +130,6 @@ export function validateAlbum(sidecar: AlbumSidecar): AlbumValidation {
 	const warnings: string[] = [];
 	const { album, tracks } = sidecar;
 
-	const trackArtists = new Set(tracks.map((t) => t.artist.trim()).filter(Boolean));
-
 	// track/disc numbers: every track needs one, and (disc, track) must be unique.
 	const seen = new Set<string>();
 	const missingNum: string[] = [];
@@ -154,7 +154,12 @@ export function validateAlbum(sidecar: AlbumSidecar): AlbumValidation {
 		blocking,
 		warnings,
 		needsAlbumArtist: album.albumArtist.trim() === "",
-		needsCompilation: trackArtists.size > 1 && album.compilation.trim() !== "1",
+		// Only guess when the master has not decided. An explicit "0" is a real
+		// answer, not an absent one: a label-as-album-artist release reads like a
+		// compilation to the heuristic, but flagging it would move it out of that
+		// artist and into Apple's Compilations bucket, which is the opposite of
+		// what setting the label as album artist was for.
+		needsCompilation: album.compilation.trim() === "" && looksLikeCompilation(album, tracks),
 	};
 }
 
