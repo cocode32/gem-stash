@@ -177,7 +177,7 @@ The FLACs are tagless at this point, stripped on purpose; the tags live in the s
 - It reports how many albums have no master; confirm to create them.
 
 This consolidates the per-file sidecars for each album into one `album.sidecar.json` in the album's folder.
-Album-wide fields (album name, album artist, date, genre, compilation,totals) are lifted into an album-level block;
+Album-wide fields (album name, album artist, date, genre, compilation, totals) are lifted into an album-level block;
 per-track fields (title, artist, track and disc number, front art) stay per track.
 
 Existing masters are left alone unless you opt into the refresh, which overwrites every hand-edit in them.
